@@ -25,9 +25,9 @@ public interface RMIInterface extends Remote {
 
   public NodeInfo searchNum(int searchTarget, int level) throws RemoteException;
 
-  public int getLeftNumID(int level) throws RemoteException;
+  public Integer getLeftNumID(int level) throws RemoteException;
 
-  public int getRightNumID(int level) throws RemoteException;
+  public Integer getRightNumID(int level) throws RemoteException;
 
   public String getLeftNameID(int level) throws RemoteException;
 

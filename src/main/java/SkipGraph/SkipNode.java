@@ -5,28 +5,30 @@ import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Scanner;
 
 public class SkipNode extends UnicastRemoteObject implements RMIInterface {
 
-  private static final long serialVersionUID = 1L;
-  private static String address;
-  private static String nameID;
-  private static int numID;
-  private static String IP;
-  private static NodeInfo[][] lookup;
-  private static final int maxLevels = 5;
-  private static String introducer;
-  private static int RMIPort = 1099;
-  public static Scanner in = new Scanner(System.in);
-  private static boolean inserted = false;
-  private static NodeInfo thisNode;
+  private final long serialVersionUID = 1L;
+  private String address;
+  private String nameID;
+  private int numID;
+  private String IP;
+  private NodeInfo[][] lookup;
+  private final int maxLevels = 5;
+  private String introducer;
+  public Scanner in = new Scanner(System.in);
+  private boolean inserted = false;
+  private NodeInfo thisNode;
+  private int RMIPort = 1099;
 
   /*
    * Constructor for SkipNode class needed for RMI setup
    */
-  protected SkipNode(String introducer, String address, String nameID, int numID)
+  protected SkipNode(String introducer, String address, int port, String nameID, int numID)
       throws RemoteException {
     super();
     try {
@@ -34,10 +36,14 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
       this.address = address;
       this.nameID = nameID;
       this.numID = numID;
+      this.RMIPort = port;
       lookup = new NodeInfo[maxLevels + 1][2];
-      thisNode = new NodeInfo(address, numID, nameID);
+      thisNode = new NodeInfo(address + ":" + RMIPort, numID, nameID);
       String st = Inet4Address.getLocalHost().getHostAddress();
+
       System.setProperty("java.rmi.server.hostname", st);
+      Registry reg = LocateRegistry.createRegistry(RMIPort);
+      reg.rebind("RMIImpl", this);
       System.out.println("RMI Server proptery set. Inet4Address: " + st);
     } catch (UnknownHostException e) {
       System.err.println(
@@ -45,7 +51,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
     }
   }
 
-  public static void printMenu() throws IOException {
+  public void printMenu() throws IOException {
     log("Node at the address: " + address);
     log("Name ID: " + nameID + " Number ID: " + numID);
     log("Choose a query by entering it's code and then press Enter");
@@ -136,6 +142,9 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
    * or it is used to insert a data node.
    */
   public void insert(NodeInfo node) {
+
+    if (node == null) return;
+
     try {
       String left = null;
       String right = null;
@@ -437,11 +446,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
   }
 
   protected String getAddress() {
-    return address;
-  }
-
-  protected static int getRMIPort() {
-    return RMIPort;
+    return address + ":" + RMIPort;
   }
 
   protected void setNumID(int num) {
@@ -452,31 +457,35 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
     nameID = s;
   }
 
-  public int getLeftNumID(int level) {
+  public Integer getLeftNumID(int level) {
+    if (lookup[level][0] == null) return null;
     return lookup[level][0].getNumID();
   }
 
-  public int getRightNumID(int level) {
+  public Integer getRightNumID(int level) {
+    if (lookup[level][1] == null) return null;
     return lookup[level][1].getNumID();
   }
 
   public String getLeftNameID(int level) {
+    if (lookup[level][0] == null) return null;
     return lookup[level][0].getNameID();
   }
 
   public String getRightNameID(int level) {
+    if (lookup[level][1] == null) return null;
     return lookup[level][1].getNameID();
   }
 
   /*
    * This method returns an RMI instance of the node with the given address
    */
-  public static RMIInterface getRMI(String adrs) {
+  public RMIInterface getRMI(String adrs) {
     if (validateIP(adrs))
       try {
         return (RMIInterface) Naming.lookup("//" + adrs + "/RMIImpl");
       } catch (Exception e) {
-        log("Exception while attempting to lookup RMI located at address: " + adrs);
+        log("Exception while attempting to lookup RMI located at address: " + adrs + ":" + e);
       }
     else {
       log("Error in looking up RMI. Address: " + adrs + " is not a valid address.");
@@ -487,7 +496,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
   /*
    * This method validates the ip and makes sure its of the form xxx.xxx.xxx.xxx
    */
-  private static boolean validateIP(String adrs) {
+  private boolean validateIP(String adrs) {
     int colonIndex = adrs.indexOf(':');
     String ip = adrs;
     if (colonIndex != -1) ip = adrs.substring(0, colonIndex);
@@ -509,7 +518,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
 
   // This method calculate the length of the common prefix
   // between the nameID of the current node and the given name
-  public static int commonBits(String name) {
+  public int commonBits(String name) {
     if (name.length() != nameID.length()) return -1;
     int i = 0;
     for (i = 0; i < name.length() && name.charAt(i) == nameID.charAt(i); i++) ;
@@ -519,7 +528,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
   /*
    * This method returns the length of the common prefix between two given strings
    */
-  public static int commonBits(String name1, String name2) {
+  public int commonBits(String name1, String name2) {
     if (name1 == null || name2 == null) {
       return -1;
     }
@@ -532,17 +541,17 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
   /*
    * A shortcut for printing to console
    */
-  public static void log(String s) {
+  public void log(String s) {
     System.out.println(s);
   }
 
-  public static void logLine(String s) {
+  public void logLine(String s) {
     System.out.print(s);
   }
   /*
    * Print the contents of the lookup table
    */
-  public static void printLookup() {
+  public void printLookup() {
     System.out.println("\n");
     for (int i = maxLevels - 1; i >= 0; i--) {
       for (int j = 0; j < 2; j++)
@@ -554,7 +563,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
   /*
    * A shortcut for getting input from user
    */
-  public static String get() {
+  public String get() {
     String response = in.nextLine();
     return response;
   }
