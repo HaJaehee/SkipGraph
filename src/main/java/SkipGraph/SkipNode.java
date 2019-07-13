@@ -273,7 +273,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
    * and it routes the search through the skip graph recursively using RMI
    * @see RMIInterface#searchNum(int, int)
    */
-  public NodeInfo searchNum(int targetInt, int level) {
+  public NodeInfo searchNum(int targetInt, int level, int numIDOfNode) {
 
     log("Search at: " + address); // we use this to see when a search has passed through this node
 
@@ -291,7 +291,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
       // delegate the search to the right neighbor
       RMIInterface rightRMI = getRMI(lookup[level][1].getAddress());
       try {
-        return rightRMI.searchNum(targetInt, level);
+        return rightRMI.searchNum(targetInt, level, rightRMI.getNumID());
       } catch (Exception e) {
         log("Exception in searchNum. Target: " + targetInt);
       }
@@ -305,7 +305,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
       // delegate the search to the left neighbor
       RMIInterface leftRMI = getRMI(lookup[level][0].getAddress());
       try {
-        return leftRMI.searchNum(targetInt, level);
+        return leftRMI.searchNum(targetInt, level, leftRMI.getNumID());
       } catch (Exception e) {
         log("Exception in searchNum. Target: " + targetInt);
       }
@@ -323,7 +323,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
 
     int level = maxLevels;
     if (lookup[0][0] == null && lookup[0][1] == null) return thisNode;
-    return searchNum(searchTarget, level);
+    return searchNum(searchTarget, level, getNumID());
   }
 
   /*
@@ -455,6 +455,10 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
 
   protected void setNameID(String s) {
     nameID = s;
+  }
+
+  protected void setLookupTable(NodeInfo[][] lookup) {
+    this.lookup = lookup;
   }
 
   public Integer getLeftNumID(int level) {

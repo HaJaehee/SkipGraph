@@ -4,3 +4,7 @@
 
 ## To build with gralde
 ./graldew build
+
+
+## To run tests
+./gradlew test

@@ -23,7 +23,7 @@ public interface RMIInterface extends Remote {
 
   public NodeInfo searchName(String searchTarget, int level, int direction) throws RemoteException;
 
-  public NodeInfo searchNum(int searchTarget, int level) throws RemoteException;
+  public NodeInfo searchNum(int searchTarget, int level, int numIDOfNode) throws RemoteException;
 
   public Integer getLeftNumID(int level) throws RemoteException;
 
