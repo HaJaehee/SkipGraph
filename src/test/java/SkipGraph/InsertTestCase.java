@@ -4,6 +4,8 @@ import static junit.framework.Assert.*;
 
 import java.util.HashMap;
 
+// InsertTestCase is used to simplify and structure writing an integrated test for the Insert method
+// of SkipNode
 class InsertTestCase {
   public SkipNode[] nodes;
   public HashMap<Integer, NodeInfo> nodeInfos;
@@ -12,6 +14,13 @@ class InsertTestCase {
   public NodeInfo[][] LastLook;
   public Integer relativeNode;
 
+  // Constructor arguments:
+  //  1. nodes:  the group of nodes present in the system (the nodes which will form the skipGraph
+  // by inserting themselves)
+  //  2. nodeExpectedPos: a map of numIDs to the effect expected on the lookupTable of the
+  // relativeNode just after insertion
+  //  3. LastLook: the final lookupTable of the relativeNode
+  //  4. relativeNode:  the node which we will monitor its lookupTable for changes
   public InsertTestCase(
       SkipNode[] nodes,
       HashMap<Integer, ExpectedPos> nodeExpectedPos,
@@ -35,8 +44,9 @@ class InsertTestCase {
     }
   }
 
+  // RunTest start off a group of tests using nodeExpectedPos and the
+  // final lookupTable
   public void RunTest() {
-    int ne = 0;
     for (SkipNode n : nodes) {
       if (n.getNumID() == relativeNode) continue;
       n.insert(nodeInfos.get(n.getNumID()));
@@ -44,9 +54,6 @@ class InsertTestCase {
       if (e == null) {
         continue;
       }
-
-      printLookUP(relativeNode);
-      System.out.println("ne is : " + ne);
 
       if (e.direction == 0) {
         Integer le = nodesByID.get(relativeNode).getLeftNumID(e.level);
@@ -57,7 +64,6 @@ class InsertTestCase {
         Integer lo = n.getNumID();
         assertEquals(lo, le);
       }
-      ne++;
     }
 
     for (int lvl = 0; lvl < 5; lvl++) {
@@ -79,21 +85,17 @@ class InsertTestCase {
       }
     }
   }
-
-  public void printLookUP(int node) {
-    SkipNode n = nodesByID.get(node);
-
-    for (int i = 0; i < 6; i++) {
-      System.out.print(n.getLeftNumID(i) + " ");
-      System.out.println(n.getRightNumID(i));
-    }
-  }
 }
 
+//  ExpectedPos contains the change that is expected to happen after the insertion of a
+//  specific node.
 class ExpectedPos {
   public int level;
   public int direction;
 
+  // Constructor  arguments
+  // 1. level: The level at which the change occur
+  // 2. direction: the direction it takes in the lookupTable (left 0, right 1)
   public ExpectedPos(int level, int direction) {
     this.level = level;
     this.direction = direction;

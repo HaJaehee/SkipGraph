@@ -1,16 +1,19 @@
 package SkipGraph;
 
-import static junit.framework.Assert.*;
-
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import org.junit.Test;
 
+// InsertTest contains the integrated test methods conserning testing the
+// insert method of skipnodes
+// Each method is by its own a test, in order to add new tests, add new methods.
 public class InsertTest {
 
   @Test
   public void InsertTest1() throws RemoteException {
 
+    // lookupTable is the final lookup table expected to be formed in the introducer node after
+    // insertion
     NodeInfo lookupTable[][] = {
       {
         new NodeInfo("127.0.0.1:" + 1236, 43, "11000"),
@@ -29,6 +32,8 @@ public class InsertTest {
       {null, null},
     };
 
+    // nodes[] is a group of nodes which if inserted in this order would result in the above
+    // lookup table in the introducer node.
     SkipNode nodes[] = {
       new SkipNode("127.0.0.1:1237", "127.0.0.1", 1234, "00000", 27),
       new SkipNode("127.0.0.1:1237", "127.0.0.1", 1235, "10000", 35),
@@ -39,6 +44,8 @@ public class InsertTest {
       new SkipNode("127.0.0.1:1237", "127.0.0.1", 1240, "11011", 75),
     };
 
+    // nodeExpectedPos is a collection of expected changes after the insertion of the nodes above
+    // one by one.
     HashMap<Integer, ExpectedPos> nodeExpectedPos = new HashMap<>();
 
     nodeExpectedPos.put(nodes[0].getNumID(), new ExpectedPos(0, 0));
@@ -49,8 +56,13 @@ public class InsertTest {
     nodeExpectedPos.put(nodes[5].getNumID(), null);
     nodeExpectedPos.put(nodes[6].getNumID(), null);
 
+    // Constructing the test handler, and runnning it.
+    // arguments:
+    // 1. List of nodes
+    // 2. List of expected changes after each insertion
+    // 3. Final lookup table in the target node
+    // 4. The target node that will contain the final lookup table
     InsertTestCase tc = new InsertTestCase(nodes, nodeExpectedPos, lookupTable, 51);
-
     tc.RunTest();
   }
 

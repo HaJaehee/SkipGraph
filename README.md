@@ -3,8 +3,12 @@
 
 
 ## To build with gralde
+```bash
 ./graldew build
+```
 
 
 ## To run tests
-./gradlew test
+```bash
+./gradlew test # for more info run with the -i flag
+```

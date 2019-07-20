@@ -291,9 +291,10 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
       // delegate the search to the right neighbor
       RMIInterface rightRMI = getRMI(lookup[level][1].getAddress());
       try {
-        return rightRMI.searchNum(targetInt, level, rightRMI.getNumID());
-      } catch (Exception e) {
+        return rightRMI.searchNum(targetInt, level, lookup[level][1].getNumID());
+      } catch (RemoteException e) {
         log("Exception in searchNum. Target: " + targetInt);
+        log(e.toString());
       }
     } else { // If the target is less than the current node then we should search left
       // Keep going down levels as long as there is either no right neighbor
@@ -305,9 +306,10 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
       // delegate the search to the left neighbor
       RMIInterface leftRMI = getRMI(lookup[level][0].getAddress());
       try {
-        return leftRMI.searchNum(targetInt, level, leftRMI.getNumID());
-      } catch (Exception e) {
+        return leftRMI.searchNum(targetInt, level, lookup[level][0].getNumID());
+      } catch (RemoteException e) {
         log("Exception in searchNum. Target: " + targetInt);
+        log(e.toString());
       }
     }
     return thisNode;

@@ -1,12 +1,15 @@
 # # Test Documentation
 
 This document describes the methods we used to write integration tests for our
-SkipGraph implementation, and how can one add more tests
+SkipGraph implementation, and how can one add more tests.
+
 
 ## # SkipNode Tests
-There are a couple of Integration tests that we are performing.
 
-### 1 SearchByNumID Test
+ 
+
+
+### Conducting SearchByNumID Test
 
 In this test case we are testing the SearchByNumID method which does the
 following:
@@ -19,15 +22,10 @@ The test cases are constructed using a synthesized Lookup table which will be gi
 a test node. Then a listener is used to monitor all the RMI calls made by
 the test node, and compare it to a given test table.
 
----
-
-_Definitions:_
-
-- synthesized lookup table: `a lookup table (similar to a phone book), given to
-our test node as the source of truth`
-- mock node: `a monitor for all activities done by our test node`
-
----
+> Definitions:
+>
+> - synthesized lookup table: a lookup table (similar to a phone book), given to our test node as the source of truth
+> - mock node: a monitor for all activities done by our test node
 
 
 
@@ -47,7 +45,7 @@ The `mockURL` is a variable containing the URL of the listener which will be
 used to monitor the RMI calls made by the test node.
 For this given lookupTable, writing a test table from the `TestCase` class is trivial:
 
-    ```java
+```java
     TestCase tt[] = {
         //           targetNumID,  expected Return value, level
         new TestCase(40,           31,                    4),
@@ -60,13 +58,18 @@ Finally, this test table is given to an instant of mockNode, and then running th
 tests is a matter of calling the `runTests` method of the mockNode:
 
 ```java
-mock.setTT(tt);
+// Constructor arguments:
+// 1. test table
+// 2. lookupTable
+// 3. server node port
+// 4. server node nameID
+// 5. server node numID
+// 6. mock node port
+MockSearchNode mock = new MockSearchNode(tt, lookupTable, serverPORT, "01010", 15, mockPORT);
 mock.runTests();
 ```
 
----
-
-### # InsertNode Tests
+### Conducting InsertNode Tests
 
 In this test case we are testing the Insert method which does the
 following:
@@ -82,43 +85,34 @@ By comparing the introducer's lookup table with the expected lookup table, we ca
 insure that the method is working correctly.
 
 ```java
-//                                    introducer,    nameID,  numID, port
+//               introducer,       address,     port,  nameID,  numID
 SkipNode nodes[] = {
-    new SkipNode(new Configuration("127.0.0.1:1237", "00000", "27",  "1234")),
-    new SkipNode(new Configuration("127.0.0.1:1237", "10000", "35",  "1235")),
-    new SkipNode(new Configuration("127.0.0.1:1237", "11000", "43",  "1236")),
-    new SkipNode(new Configuration("none",           "11100", "51",  "1237")),
-    new SkipNode(new Configuration("127.0.0.1:1237", "11110", "59",  "1238")),
-    new SkipNode(new Configuration("127.0.0.1:1237", "11111", "67",  "1239")),
-    new SkipNode(new Configuration("127.0.0.1:1237", "11011", "75",  "1240")),
+    new SkipNode("127.0.0.1:1237", "127.0.0.1", 1234,  "00000", 27),
+    new SkipNode("127.0.0.1:1237", "127.0.0.1", 1235,  "10000", 35),
+    new SkipNode("127.0.0.1:1237", "127.0.0.1", 1236,  "11000", 43),
+    new SkipNode("none",           "127.0.0.1", 1237,  "11100", 51),
+    new SkipNode("127.0.0.1:1237", "127.0.0.1", 1238,  "11110", 59),
+    new SkipNode("127.0.0.1:1237", "127.0.0.1", 1239,  "11111", 67),
+    new SkipNode("127.0.0.1:1237", "127.0.0.1", 1240,  "11011", 75),
 };
 ```
 
-If the above group of nodes, were to form a skipGraph, it would look like this
+If the above group of nodes were to form a skip graph, it would look like this
 one:
 
 ```yaml
-level 0: 27-35-43-51-59-67-75
-level 1: 27 35-43-51-59-67-75
-level 2: 27 35 43-51-59-67-75
-level 3: 27 35 43-75 51-59-67
-level 4: 27 35 43 51 59-67 75
-level 5: 27 35 43 51 59 67 75
+level 0: 27 35 43 51 59 67 75
+level 1: 27 35 43 51 59-67 75
+level 2: 27 35 43-75 51-59-67
+level 3: 27 35 43-51-59-67-75
+level 4: 27 35-43-51-59-67-75
+level 5: 27-35-43-51-59-67-75
 ```
 
 We can write down the expected right and left nodes of node with numID: 51 for
 example at every level. This will look like the following:
 
 ```java
-// Inserting nodes should construct the following graph
-// with respect to the node 51
-// level 0:     43<-L --- R->59
-// level 1:     43<-L --- R->59
-// level 2:     43<-L --- R->59
-// level 3:   null<-L --- R->59
-// level 4:   null<-L --- R->null
-// level 5:   null<-L --- R->null
-
 NodeInfo lookupTable[][] = {
     { new NodeInfo("127.0.0.1: 1234", 43, "11000"), new NodeInfo("127.0.0.1:1234", 59, "11110") },
     { new NodeInfo("127.0.0.1: 1234", 43, "11000"), new NodeInfo("127.0.0.1:1234", 59, "11110") },
@@ -128,5 +122,16 @@ NodeInfo lookupTable[][] = {
 };
 ```
 after inserting the nodes, we can check if the resultant naighbors of node 51 are
-as expected.
+as expected. This is done by creating a test handler, and running it.
+
+```java
+// Constructing the test handler, and runnning it.
+// arguments:
+// 1. List of nodes
+// 2. List of expected changes after each insertion
+// 3. Final lookup table in the target node
+// 4. The target node that will contain the final lookup table
+InsertTestCase tc = new InsertTestCase(nodes, nodeExpectedPos, lookupTable, 51);
+tc.RunTest();
+```
 
