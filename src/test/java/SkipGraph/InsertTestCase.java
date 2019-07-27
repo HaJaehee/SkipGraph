@@ -48,6 +48,7 @@ class InsertTestCase {
   // final lookupTable
   public void RunTest() {
     for (SkipNode n : nodes) {
+      System.out.println("yo");
       if (n.getNumID() == relativeNode) continue;
       n.insert(nodeInfos.get(n.getNumID()));
       ExpectedPos e = nodeExpectedPos.get(n.getNumID());
@@ -71,13 +72,17 @@ class InsertTestCase {
         if (LastLook[lvl][0] == null) {
           assertNull(nodesByID.get(relativeNode).getLeftNumID(lvl));
         } else {
-
-          assertTrue(nodesByID.get(relativeNode).getLeftNumID(lvl) == LastLook[lvl][0].getNumID());
+          assertEquals(
+              (Integer) nodesByID.get(relativeNode).getLeftNumID(lvl),
+              (Integer) LastLook[lvl][0].getNumID());
         }
+
         if (LastLook[lvl][1] == null) {
           assertNull(nodesByID.get(relativeNode).getRightNumID(lvl));
         } else {
-          assertTrue(nodesByID.get(relativeNode).getRightNumID(lvl) == LastLook[lvl][1].getNumID());
+          assertEquals(
+              (Integer) nodesByID.get(relativeNode).getRightNumID(lvl),
+              (Integer) LastLook[lvl][1].getNumID());
         }
 
       } catch (Exception e) {
