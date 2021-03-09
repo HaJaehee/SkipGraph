@@ -86,7 +86,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface{
 			log("Name ID should be a binary string. Please enter a valid Name ID:");
 			nameID = get();
 		}
-		log("Enter Your Num ID.");
+		log("Enter Your Number ID.");
 		String num = get();
 		while(!num.matches("0|[1-9][0-9]*")) {//Makes sure the number ID is an actual number
             log("Number ID should be a number. Please enter a valid Number ID:");
