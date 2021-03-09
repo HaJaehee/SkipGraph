@@ -456,6 +456,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface{
 	 * Similarity is defined to be the maximum number of common bits between the two strings 
 	 * @see RMIInterface#searchByNameID(java.lang.String)
 	 */
+	//TODO there is a bug
 	public NodeInfo searchByNameID(String searchTarget) throws RemoteException{
 		
 		int newLevel = commonBits(searchTarget);
